@@ -3,10 +3,10 @@
 <head>
     <title>Lookback Snapshot Aggregator</title>
     <!--  (c) 2015 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Thu Dec 17 2015 15:04:39 GMT-0600 (CST) -->
+    <!--  Build Date: Thu Dec 17 2015 15:49:30 GMT-0600 (CST) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Thu Dec 17 2015 15:04:39 GMT-0600 (CST)";
+        var APP_BUILD_DATE = "Thu Dec 17 2015 15:49:30 GMT-0600 (CST)";
         var CHECKSUM = [%= checksum %];
     </script>
     

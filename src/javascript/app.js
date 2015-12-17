@@ -19,7 +19,25 @@ Ext.define("Rally.technicalServices.LookbackSnapshotAggregator", {
     },
 
     launch: function() {
-        this._addDateSelectors();
+         //initialize the preliminary estimate field mapping
+        Ext.create('Rally.data.wsapi.Store',{
+            model:'PreliminaryEstimate',
+            fetch: true
+        }).load({
+            callback: function(records){
+                var oidValueHash = {};
+                _.each(records, function(r){
+                    oidValueHash[r.get('ObjectID')] = r.get('Value');
+                });
+                Rally.technicalServices.LookbackSnapshotAggregatorSettings.configurationMap["PortfolioItem/Initiative"].fieldMapping.PreliminaryEstimate = function(snapData){
+                    return oidValueHash[snapData.PreliminaryEstimate] || "";
+                };
+                this._addDateSelectors();
+            },
+            scope: this
+        });
+
+
     },
 
     fetchSnapshots: function(){
@@ -32,14 +50,22 @@ Ext.define("Rally.technicalServices.LookbackSnapshotAggregator", {
         }
 
         this.logger.log('fetchSnapshots', startDate, endDate, this.getArtifactType());
+
+        var find = {
+            _ProjectHierarchy: {$in: [this.getContext().getProject().ObjectID]},
+            _TypeHierarchy: this.getArtifactType(),
+            _ValidFrom: {$lte: Rally.util.DateTime.toIsoString(endDate)},
+            _ValidTo: {$gt: Rally.util.DateTime.toIsoString(startDate)}
+        };
+        if (this.getConfigurationMap().find){
+            Ext.Object.merge(find,this.getConfigurationMap().find);
+        }
+
+        this.logger.log('find', find,this.getArtifactType() );
+
         this.setLoading(true);
         var asf = Ext.create('Rally.technicalservices.AggregateStoreFactory',{
-            find: {
-                _ProjectHierarchy: {$in: [this.getContext().getProject().ObjectID]},
-                _TypeHierarchy: this.getArtifactType(),
-                _ValidFrom: {$lte: Rally.util.DateTime.toIsoString(endDate)},
-                _ValidTo: {$gt: Rally.util.DateTime.toIsoString(startDate)}
-            },
+            find: find,
             fetch: this.getFetchFields(),
             configurationMap: this.getConfigurationMap(),
             hydrate: this.getHydrateFields(),

@@ -3,11 +3,11 @@
 <head>
     <title>Lookback Snapshot Aggregator</title>
     <!--  (c) 2015 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Thu Dec 17 2015 15:04:39 GMT-0600 (CST) -->
+    <!--  Build Date: Thu Dec 17 2015 15:49:30 GMT-0600 (CST) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Thu Dec 17 2015 15:04:39 GMT-0600 (CST)";
-        var CHECKSUM = 40485772897;
+        var APP_BUILD_DATE = "Thu Dec 17 2015 15:49:30 GMT-0600 (CST)";
+        var CHECKSUM = 42362469778;
     </script>
     
     <script type="text/javascript" src="/apps/2.0/sdk.js"></script>
@@ -625,7 +625,8 @@ Ext.define('Rally.technicalServices.LookbackSnapshotAggregatorSettings',{
                     }
                     return "";
                 }
-            }
+            },
+            find: {DirectChildrenCount: 0}
         },
         "PortfolioItem/Feature": {
             name: 'PortfolioItem/Feature',
@@ -1063,7 +1064,25 @@ Ext.define("Rally.technicalServices.LookbackSnapshotAggregator", {
     },
 
     launch: function() {
-        this._addDateSelectors();
+         //initialize the preliminary estimate field mapping
+        Ext.create('Rally.data.wsapi.Store',{
+            model:'PreliminaryEstimate',
+            fetch: true
+        }).load({
+            callback: function(records){
+                var oidValueHash = {};
+                _.each(records, function(r){
+                    oidValueHash[r.get('ObjectID')] = r.get('Value');
+                });
+                Rally.technicalServices.LookbackSnapshotAggregatorSettings.configurationMap["PortfolioItem/Initiative"].fieldMapping.PreliminaryEstimate = function(snapData){
+                    return oidValueHash[snapData.PreliminaryEstimate] || "";
+                };
+                this._addDateSelectors();
+            },
+            scope: this
+        });
+
+
     },
 
     fetchSnapshots: function(){
@@ -1076,14 +1095,22 @@ Ext.define("Rally.technicalServices.LookbackSnapshotAggregator", {
         }
 
         this.logger.log('fetchSnapshots', startDate, endDate, this.getArtifactType());
+
+        var find = {
+            _ProjectHierarchy: {$in: [this.getContext().getProject().ObjectID]},
+            _TypeHierarchy: this.getArtifactType(),
+            _ValidFrom: {$lte: Rally.util.DateTime.toIsoString(endDate)},
+            _ValidTo: {$gt: Rally.util.DateTime.toIsoString(startDate)}
+        };
+        if (this.getConfigurationMap().find){
+            Ext.Object.merge(find,this.getConfigurationMap().find);
+        }
+
+        this.logger.log('find', find,this.getArtifactType() );
+
         this.setLoading(true);
         var asf = Ext.create('Rally.technicalservices.AggregateStoreFactory',{
-            find: {
-                _ProjectHierarchy: {$in: [this.getContext().getProject().ObjectID]},
-                _TypeHierarchy: this.getArtifactType(),
-                _ValidFrom: {$lte: Rally.util.DateTime.toIsoString(endDate)},
-                _ValidTo: {$gt: Rally.util.DateTime.toIsoString(startDate)}
-            },
+            find: find,
             fetch: this.getFetchFields(),
             configurationMap: this.getConfigurationMap(),
             hydrate: this.getHydrateFields(),

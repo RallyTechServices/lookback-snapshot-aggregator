@@ -27,7 +27,8 @@ Ext.define('Rally.technicalServices.LookbackSnapshotAggregatorSettings',{
                     }
                     return "";
                 }
-            }
+            },
+            find: {DirectChildrenCount: 0}
         },
         "PortfolioItem/Feature": {
             name: 'PortfolioItem/Feature',
