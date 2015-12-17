@@ -3,11 +3,11 @@
 <head>
     <title>Lookback Snapshot Aggregator</title>
     <!--  (c) 2015 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Thu Dec 17 2015 15:49:30 GMT-0600 (CST) -->
+    <!--  Build Date: Thu Dec 17 2015 16:00:36 GMT-0600 (CST) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Thu Dec 17 2015 15:49:30 GMT-0600 (CST)";
-        var CHECKSUM = 42362469778;
+        var APP_BUILD_DATE = "Thu Dec 17 2015 16:00:36 GMT-0600 (CST)";
+        var CHECKSUM = 42215152181;
     </script>
     
     <script type="text/javascript" src="/apps/2.0/sdk.js"></script>
@@ -618,10 +618,10 @@ Ext.define('Rally.technicalServices.LookbackSnapshotAggregatorSettings',{
                 },
                 "Feature ID": function(snapData){
                     if (snapData.Feature){
-                        return snapData.Feature.ObjectID;
+                        return snapData.Feature;
                     }
                     if (snapData.PortfolioItem){
-                        return snapData.PortfolioItem.ObjectID;
+                        return snapData.PortfolioItem;
                     }
                     return "";
                 }
@@ -641,10 +641,7 @@ Ext.define('Rally.technicalServices.LookbackSnapshotAggregatorSettings',{
                     return snapData.Project.Name;
                 },
                 "Initiative ID": function(snapData){
-                    if (snapData.Parent){
-                        return snapData.Parent.ObjectID;
-                    }
-                    return "";
+                   return snapData.Parent || "";
                 }
             },
             hydrate: ['State','Project']

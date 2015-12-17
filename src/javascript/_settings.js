@@ -20,10 +20,10 @@ Ext.define('Rally.technicalServices.LookbackSnapshotAggregatorSettings',{
                 },
                 "Feature ID": function(snapData){
                     if (snapData.Feature){
-                        return snapData.Feature.ObjectID;
+                        return snapData.Feature;
                     }
                     if (snapData.PortfolioItem){
-                        return snapData.PortfolioItem.ObjectID;
+                        return snapData.PortfolioItem;
                     }
                     return "";
                 }
@@ -43,10 +43,7 @@ Ext.define('Rally.technicalServices.LookbackSnapshotAggregatorSettings',{
                     return snapData.Project.Name;
                 },
                 "Initiative ID": function(snapData){
-                    if (snapData.Parent){
-                        return snapData.Parent.ObjectID;
-                    }
-                    return "";
+                   return snapData.Parent || "";
                 }
             },
             hydrate: ['State','Project']
