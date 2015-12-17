@@ -12,7 +12,7 @@ Ext.define("Rally.technicalServices.LookbackSnapshotAggregator", {
     config: {
         defaultSettings: {
             aggregateBy: 'day',
-            artifactType: 'hierarchicalrequirement',
+            artifactType: 'HierarchicalRequirement',
             maxDayRange: 30,
             defaultDayRange: 7
         }
@@ -21,6 +21,7 @@ Ext.define("Rally.technicalServices.LookbackSnapshotAggregator", {
     launch: function() {
         this._addDateSelectors();
     },
+
     fetchSnapshots: function(){
         var startDate = this.getStartDate(),
             endDate = this.getEndDate();
@@ -35,11 +36,12 @@ Ext.define("Rally.technicalServices.LookbackSnapshotAggregator", {
         var asf = Ext.create('Rally.technicalservices.AggregateStoreFactory',{
             find: {
                 _ProjectHierarchy: {$in: [this.getContext().getProject().ObjectID]},
-                _TypeHierarchy: {$in: [this.getArtifactType()]},
+                _TypeHierarchy: this.getArtifactType(),
                 _ValidFrom: {$lte: Rally.util.DateTime.toIsoString(endDate)},
                 _ValidTo: {$gt: Rally.util.DateTime.toIsoString(startDate)}
             },
             fetch: this.getFetchFields(),
+            configurationMap: this.getConfigurationMap(),
             hydrate: this.getHydrateFields(),
             limit: 'Infinity',
             startDate: startDate,
@@ -88,10 +90,10 @@ Ext.define("Rally.technicalServices.LookbackSnapshotAggregator", {
     },
     _addGrid: function(data, fields){
         this.logger.log('_addGrid', data, fields);
+
         this.setLoading(false);
-        if (this.down('rallygrid')){
-            this.down('rallygrid').destroy();  
-        }
+
+        this.down('#btn-export').setDisabled(false);
 
         var store = Ext.create('Rally.data.custom.Store', {
             data: data,
@@ -100,6 +102,7 @@ Ext.define("Rally.technicalServices.LookbackSnapshotAggregator", {
 
         this.down('#display_box').add({
             xtype: 'rallygrid',
+            showRowActionsColumn: false,
             store: store,
             columnCfgs: this._getColumns(fields)
         });
@@ -107,11 +110,16 @@ Ext.define("Rally.technicalServices.LookbackSnapshotAggregator", {
     _getColumns: function(fields){
         return _.map(fields, function(f){ return {text: f, dataIndex: f, flex: 1 }; });
     },
+
     getFetchFields: function(){
-        return Rally.technicalServices.LookbackSnapshotAggregatorSettings.configurationMap[this.getArtifactType()].fetch;
+        this.logger.log('getFetchFields',this.getArtifactType());
+        return this.getConfigurationMap().fetch;
+    },
+    getConfigurationMap: function(){
+        return Rally.technicalServices.LookbackSnapshotAggregatorSettings.configurationMap[this.getArtifactType()];
     },
     getHydrateFields: function(){
-        return Rally.technicalServices.LookbackSnapshotAggregatorSettings.configurationMap[this.getArtifactType()].hydrate;
+        return this.getConfigurationMap().hydrate;
     },
     getArtifactType: function(){
         return this.getSetting('artifactType');
@@ -126,15 +134,40 @@ Ext.define("Rally.technicalServices.LookbackSnapshotAggregator", {
         return this.getSetting('defaultDayRange');
     },
     _addDateSelectors: function(){
+        this.down('#selector_box').removeAll();
+        this.down('#display_box').removeAll();
+
         var today = new Date();
 
         this.getSelectorBox().add(this.getDateSelectorConfig('dt-startDate','Start Date',Rally.util.DateTime.add(today,"day",-this.getDefaultDayRange())));
         this.getSelectorBox().add(this.getDateSelectorConfig('dt-endDate','End Date',today));
         var btn = this.getSelectorBox().add({
             xtype: 'rallybutton',
-            text: 'Update'
+            text: 'Update',
+            margin: '0 10 0 10'
         });
         btn.on('click', this.fetchSnapshots, this);
+
+        var btn = this.getSelectorBox().add({
+            xtype: 'rallybutton',
+            itemId: 'btn-export',
+            text: 'Export',
+            margin: '0 10 0 10',
+            disabled: true
+        });
+        btn.on('click', this.export, this);
+
+    },
+    export: function(){
+        this.logger.log('export');
+        Rally.technicalservices.FileUtilities.getCSVFromGrid(this.down('rallygrid')).then({
+            success: function(csv){
+                this.logger.log('csv',csv);
+                Rally.technicalservices.FileUtilities.saveCSVToFile(csv, "export.csv");
+            },
+            scope: this
+        });
+
     },
     getDateSelectorConfig: function(itemId, label,defaultValue){
         return {
@@ -178,6 +211,6 @@ Ext.define("Rally.technicalServices.LookbackSnapshotAggregator", {
     onSettingsUpdate: function (settings){
         this.logger.log('onSettingsUpdate',settings);
         Ext.apply(this, settings);
-        this.launch();
+        this._addDateSelectors();
     }
 });

@@ -9,10 +9,11 @@ Ext.define('Rally.technicalservices.AggregateStoreFactory',{
     aggregateBy: null,
 
     constructor: function(config){
-
+        this.logger.log('constructor',config);
         this.startDate = config.startDate;
         this.endDate = config.endDate;
         this.aggregateBy = config.aggregateBy || null;
+        this.configurationMap = config.configurationMap;
 
         config.sort = { _ValidFrom: 1 };  //The aggregator class needs snapshots to be sorted ascending in order.
         this.callParent([config]);
@@ -28,9 +29,9 @@ Ext.define('Rally.technicalservices.AggregateStoreFactory',{
             var aggregator = Ext.create('Rally.technicalservices.SnapshotAggregator',{
                 snapshots: this.snapshots,
                 aggregateBy: this.aggregateBy,
-                fields: this.fetch,
                 startDate: this.startDate,
-                endDate: this.endDate
+                endDate: this.endDate,
+                configurationMap: this.configurationMap
             });
 
             this.fireEvent('storeready', aggregator.getData(), aggregator.getStoreFields());

@@ -1,18 +1,18 @@
 Ext.define('Rally.technicalservices.SnapshotAggregator',{
 
     data: undefined,
-    aggregateField: "AggregateDate",
+    aggregateField: "Day",
     snapAggregateField: "_ValidFrom",
 
     constructor: function(config){
             var snapshots = config.snapshots || [],
                 aggregateBy = config.aggregateBy || null,
-                fields = config.fields || ['FormattedID'],
                 startDate = config.startDate,
                 endDate = config.endDate;
 
-        this.fields = fields;
-        this.data = this._aggregate(snapshots, aggregateBy, fields, startDate, endDate);
+        this.configurationMap = config.configurationMap;
+
+        this.data = this._aggregate(snapshots, aggregateBy, startDate, endDate);
         console.log('data',this.data);
     },
     getData: function(){
@@ -20,41 +20,47 @@ Ext.define('Rally.technicalservices.SnapshotAggregator',{
     },
     getStoreFields: function(){
         var fields = [this.aggregateField];
-        fields = fields.concat(this.fields);
-        console.log('fields', fields)
+        fields = fields.concat(this.configurationMap.fields);
         return fields;
     },
-    _aggregate: function(snapshots, aggregateBy, fields, startDate, endDate){
-        console.log('_aggregate',aggregateBy, fields, startDate, endDate);
+    _aggregate: function(snapshots, aggregateBy, startDate, endDate){
+        console.log('_aggregate',aggregateBy, startDate, endDate);
         if (!aggregateBy){
-            return this._rawData(snapshots, fields);
+            return this._rawData(snapshots);
         }
 
         if (aggregateBy === 'day'){
-            return this._aggregateByDay(snapshots, fields,startDate, endDate);
+            return this._aggregateByDay(snapshots,startDate, endDate);
         }
 
         return [];
     },
-    _rawData: function(snapshots, fields){
+    _rawData: function(snapshots){
         var data = [],
             aggregateField = this.aggregateField;
 
         _.each(snapshots, function(s){
-            var r = this._getSnapRow(s.getData(),fields)
+            var r = this._getSnapRow(s.getData())
             r[aggregateField] = Rally.util.DateTime.fromIsoString(s.get("_ValidFrom"));
             data.push(r);
         }, this);
         return data;
     },
-    _getSnapRow: function(snapData, fields){
-        var r = {};
+    _getSnapRow: function(snapData){
+        var r = {},
+            fields = this.configurationMap.fields,
+            fieldMapping = this.configurationMap.fieldMapping;
+
         _.each(fields, function(f){
-            r[f] = snapData[f] || '';
+            if (fieldMapping[f]){
+                r[f] = fieldMapping[f](snapData);
+            } else {
+                r[f] = snapData[f] || '';
+            }
         });
         return r;
     },
-    _aggregateByDay: function(snapshots, fields, startDate, endDate){
+    _aggregateByDay: function(snapshots, startDate, endDate){
         var newDateField = "date_changed",
             snapsByOid = this._aggregateSnapsByOid(snapshots, newDateField),
             dateBuckets = this._getDateBuckets(startDate, endDate, 'day'),
@@ -68,7 +74,7 @@ Ext.define('Rally.technicalservices.SnapshotAggregator',{
                 var objectDayRow = {};
                 _.each(snaps, function(snap){
                     if (snap[newDateField] < day){
-                        objectDayRow = this._getSnapRow(snap,fields);
+                        objectDayRow = this._getSnapRow(snap);
                         objectDayRow[aggregateField] = day;
                     }
                 }, this);
@@ -105,15 +111,7 @@ Ext.define('Rally.technicalservices.SnapshotAggregator',{
             date = Rally.util.DateTime.add(date,granularity,1);
         }
         return buckets;
-    },
-    //formatDateBuckets: function(buckets, dateFormat){
-    //    var categories = [];
-    //    Ext.each(buckets, function(bucket){
-    //        categories.push(Rally.util.DateTime.format(bucket,dateFormat));
-    //    });
-    //    categories[categories.length-1] += "*";
-    //    return categories;
-    //}
+    }
 
 
 });
