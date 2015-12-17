@@ -108,7 +108,15 @@ Ext.define("Rally.technicalServices.LookbackSnapshotAggregator", {
         });
     },
     _getColumns: function(fields){
-        return _.map(fields, function(f){ return {text: f, dataIndex: f, flex: 1 }; });
+        return _.map(fields, function(f){
+            var col = {text: f, dataIndex: f, flex: 1 };
+            if (f === "Day"){
+                col.renderer = function(v){
+                    return Rally.util.DateTime.toIsoString(v);
+                }
+            }
+            return col;
+        });
     },
 
     getFetchFields: function(){

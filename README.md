@@ -1,13 +1,50 @@
 #Lookback Snapshot Aggregator
+This highly customized app allows a normalized data export for User Stories, Features and Initiatives from the lookback API for artifacts over a given time period.  
+This app currently assumes that Features are the lowest level portfolio item type and Initiatives are the second level portfolio item type.
 
+![ScreenShot](/images/lookback-aggregator.png)
+
+Due to the potentially large volume of data that could be returned, the date range is limited to a max of 30 days. 
+ 
+The app exports data within the currently selected Project Scope.  
+
+If there are thousands of artifacts to export, performance could be slow.  
 
 ###App Configuration 
 * Aggregate By
 - None : Produces all snapshots for the selected time range 
-- day  : Produces snapshots of object IDs at midnight for each day in the selected timezone 
+- day  : Produces snapshots of object IDs at midnight for each day in the selected timezone - NOTE about TIMEZONES: 
+
+* Artifact Type 
+- User Story, Feature or Initiative
+
 
 ## Development Notes
 
+Configurations for the export are in the settings.js file in a configurationMap object.  This object has key value pairs where the key is the Artifact Type (must be case sensitive for the lookback queries).
+The values consist of the following attributes:
+
+* name - Artifact Type name used for _TypeHierarchy query.  This is also used for the valueField in the App Settings ArtifactType combobox
+* displayName - Display name for the App Settings dropdown box
+* fetch - Fetch list passed to the SnapShot store
+* hydrate - Hydrate list passed to the Snapshot Store
+* fields - Fields to show in the grid.  Fields can be different than the fetch field.  If they are, then provide a field mapping for the field
+* fieldMapping - function (with snapData parameter, where snapData = snapshotModel.getData()) to run to get the derived value of the field.  This is for displaying Project Name and ID when the lookback just returns a project object. if a field mapping is provided, then that function will be called, otherwise the field will be used as is from the snapshot data object. 
+Example field mapping (for User Stories):
+{
+    "Project ID": function(snapData){
+      return snapData.Project.ObjectID;
+    },
+    "Feature ID": function(snapData){
+      if (snapData.Feature){
+        return snapData.Feature.ObjectID;
+      } 
+      if (snapData.PortfolioItem){
+        return snapData.PortfolioItem.ObjectID;
+      }
+      return "";
+    }
+}
 ### First Load
 
 If you've just downloaded this from github and you want to do development, 

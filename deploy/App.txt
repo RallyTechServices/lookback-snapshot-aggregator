@@ -3,11 +3,11 @@
 <head>
     <title>Lookback Snapshot Aggregator</title>
     <!--  (c) 2015 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Thu Dec 17 2015 14:03:24 GMT-0600 (CST) -->
+    <!--  Build Date: Thu Dec 17 2015 15:04:39 GMT-0600 (CST) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Thu Dec 17 2015 14:03:24 GMT-0600 (CST)";
-        var CHECKSUM = 38684560248;
+        var APP_BUILD_DATE = "Thu Dec 17 2015 15:04:39 GMT-0600 (CST)";
+        var CHECKSUM = 40485772897;
     </script>
     
     <script type="text/javascript" src="/apps/2.0/sdk.js"></script>
@@ -625,8 +625,7 @@ Ext.define('Rally.technicalServices.LookbackSnapshotAggregatorSettings',{
                     }
                     return "";
                 }
-            },
-            manualHydrate: []
+            }
         },
         "PortfolioItem/Feature": {
             name: 'PortfolioItem/Feature',
@@ -644,12 +643,10 @@ Ext.define('Rally.technicalServices.LookbackSnapshotAggregatorSettings',{
                     if (snapData.Parent){
                         return snapData.Parent.ObjectID;
                     }
-
                     return "";
                 }
             },
-            hydrate: ['State','Project'],
-            manualHydrate: []
+            hydrate: ['State','Project']
         },
         //Date    Initiative ID    Initiative Name    Team    Team ID    Cap / Exp Field    Investment Category    Initiative Size    State
         "PortfolioItem/Initiative": {
@@ -665,12 +662,11 @@ Ext.define('Rally.technicalServices.LookbackSnapshotAggregatorSettings',{
                     return snapData.Project.Name;
                 },
                 "PreliminaryEstimate": function (snapData) {
-                    console.log('PreliminaryEstimate', snapData);
+                    //TODO: populate Preliminary Estimate with Value
                     return snapData.PreliminaryEstimate;
                 }
             },
-            hydrate: ['State','Project'],
-            manualHydrate: []
+            hydrate: ['State','Project']
         }
     },
 
@@ -751,7 +747,7 @@ Ext.define('Rally.technicalservices.FileUtilities', {
        
         var text = '';
         Ext.each(Object.keys(requestedFieldHash), function(key){
-            text += requestedFieldHash[key] + ',';
+            text += requestedFieldHash[key] || key + ',';
         });
         text = text.replace(/,$/,'\n');
         
@@ -803,8 +799,7 @@ Ext.define('Rally.technicalservices.FileUtilities', {
                 }
             }
         });
-        
-        csv.push('"' + headers.join('","') + '"');
+
         
         var mock_meta_data = {
             align: "right",
@@ -820,13 +815,35 @@ Ext.define('Rally.technicalservices.FileUtilities', {
             tdCls: "x-grid-cell x-grid-td x-grid-cell-headerId-gridcolumn-1029 x-grid-cell-last x-unselectable",
             unselectableAttr: "unselectable='on'"
         }
+
+        var pageSize = store.pageSize,
+            totalPages = Math.ceil(store.getTotalCount()/pageSize),
+            promises = [];
+
+        for (var currentPage=1; currentPage <= totalPages; currentPage++){
+            promises.push(this.loadPage(store, currentPage, columns));
+        }
+        Deft.Promise.all(promises).then({
+            success: function(results){
+                console.log('headers',headers,headers.join(','));
+                var csv = [headers.join(',')].concat(_.flatten(results));
+                csv = csv.join('\n');
+                deferred.resolve(csv);
+            },
+            scope: this
+        });
+        return deferred.promise;
         
-        var all_records = [];
-        store.loadPages({
-            callback: function(records) {
+    },
+    loadPage: function(store, currentPage,columns){
+        var deferred = Ext.create('Deft.Deferred'),
+            csv = [];
+
+        store.loadPage(currentPage, {
+            callback: function(records){
                 for ( var i=0; i<records.length; i++ ) {
                     var record = records[i];
-                    
+
                     var node_values = [];
                     Ext.Array.each(columns,function(column){
                         if (column.xtype != 'rallyrowactioncolumn'){
@@ -853,19 +870,14 @@ Ext.define('Rally.technicalservices.FileUtilities', {
                                     node_values.push(display_value);
                                 }
                             }
-                            
                         }
                     },this);
                     csv.push('"' + node_values.join('","') + '"');
                 }
-                
-                deferred.resolve( csv.join('\r\n') );
-            },
-            scope: this
+                deferred.resolve(csv);
+            }
         });
-        
-        return deferred.promise;
-        
+        return deferred;
     }
 
 });
@@ -1134,12 +1146,21 @@ Ext.define("Rally.technicalServices.LookbackSnapshotAggregator", {
 
         this.down('#display_box').add({
             xtype: 'rallygrid',
+            showRowActionsColumn: false,
             store: store,
             columnCfgs: this._getColumns(fields)
         });
     },
     _getColumns: function(fields){
-        return _.map(fields, function(f){ return {text: f, dataIndex: f, flex: 1 }; });
+        return _.map(fields, function(f){
+            var col = {text: f, dataIndex: f, flex: 1 };
+            if (f === "Day"){
+                col.renderer = function(v){
+                    return Rally.util.DateTime.toIsoString(v);
+                }
+            }
+            return col;
+        });
     },
 
     getFetchFields: function(){
@@ -1190,11 +1211,15 @@ Ext.define("Rally.technicalServices.LookbackSnapshotAggregator", {
 
     },
     export: function(){
+        this.logger.log('export');
         Rally.technicalservices.FileUtilities.getCSVFromGrid(this.down('rallygrid')).then({
             success: function(csv){
-                console.log('csv',csv);
-            }
+                this.logger.log('csv',csv);
+                Rally.technicalservices.FileUtilities.saveCSVToFile(csv, "export.csv");
+            },
+            scope: this
         });
+
     },
     getDateSelectorConfig: function(itemId, label,defaultValue){
         return {
