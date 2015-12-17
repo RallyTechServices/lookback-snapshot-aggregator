@@ -32,14 +32,21 @@ Ext.define("Rally.technicalServices.LookbackSnapshotAggregator", {
         }
 
         this.logger.log('fetchSnapshots', startDate, endDate, this.getArtifactType());
+
+        var find = {
+            _ProjectHierarchy: {$in: [this.getContext().getProject().ObjectID]},
+            _TypeHierarchy: this.getArtifactType(),
+            _ValidFrom: {$lte: Rally.util.DateTime.toIsoString(endDate)},
+            _ValidTo: {$gt: Rally.util.DateTime.toIsoString(startDate)}
+        };
+        if (this.getConfigurationMap().find){
+            Ext.Object.merge(find,this.getConfigurationMap().find);
+        }
+        this.logger.log('find', find,this.getArtifactType() );
+
         this.setLoading(true);
         var asf = Ext.create('Rally.technicalservices.AggregateStoreFactory',{
-            find: {
-                _ProjectHierarchy: {$in: [this.getContext().getProject().ObjectID]},
-                _TypeHierarchy: this.getArtifactType(),
-                _ValidFrom: {$lte: Rally.util.DateTime.toIsoString(endDate)},
-                _ValidTo: {$gt: Rally.util.DateTime.toIsoString(startDate)}
-            },
+            find: find,
             fetch: this.getFetchFields(),
             configurationMap: this.getConfigurationMap(),
             hydrate: this.getHydrateFields(),
