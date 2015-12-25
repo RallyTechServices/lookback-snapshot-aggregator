@@ -606,17 +606,11 @@ Ext.define('Rally.technicalServices.LookbackSnapshotAggregatorSettings',{
         HierarchicalRequirement: {
             name: 'HierarchicalRequirement',
             displayName: 'User Story',
-            fetch: ['ObjectID','FormattedID','Name','PlanEstimate','ScheduleState','Project','Feature','PortfolioItem'],
+            fetch: ['Feature','PortfolioItem','ObjectID','FormattedID','Name','Project','PlanEstimate','ScheduleState'],
+            fields: ['Feature Object Id','Story Object Id','Story Formatted Id','Story Name','Team Object Id','Team Name','Story Point','Story State'],
             hydrate: ['ScheduleState','Project'],
-            fields: ['ObjectID','FormattedID','Name','PlanEstimate','ScheduleState','Project ID','Project Name','Feature ID'],
             fieldMapping: {
-                "Project ID": function(snapData){
-                    return snapData.Project.ObjectID;
-                },
-                "Project Name": function(snapData){
-                    return snapData.Project.Name;
-                },
-                "Feature ID": function(snapData){
+                "Feature Object Id": function(snapData){
                     if (snapData.Feature){
                         return snapData.Feature;
                     }
@@ -624,6 +618,27 @@ Ext.define('Rally.technicalServices.LookbackSnapshotAggregatorSettings',{
                         return snapData.PortfolioItem;
                     }
                     return "";
+                },
+                "Story Object Id": function(snapData) {
+                    return snapData.ObjectID;
+                },
+                "Story Formatted Id": function(snapData) {
+                    return snapData.FormattedID;
+                },
+                "Story Name": function(snapData) {
+                    return snapData.Name;
+                },
+                "Team Object Id": function(snapData){
+                    return snapData.Project.ObjectID;
+                },
+                "Team Name": function(snapData){
+                    return snapData.Project.Name;
+                },
+                "Story Point": function(snapData){
+                    return snapData.PlanEstimate;
+                },
+                "Story State": function(snapData){
+                    return snapData.ScheduleState;
                 }
             },
             find: {DirectChildrenCount: 0}
@@ -631,40 +646,69 @@ Ext.define('Rally.technicalServices.LookbackSnapshotAggregatorSettings',{
         "PortfolioItem/Feature": {
             name: 'PortfolioItem/Feature',
             displayName: 'Feature',
-            fetch: ['ObjectID','FormattedID','Name','State','Project','Parent'],
-            fields: ['ObjectID','FormattedID','Name','State','Project ID','Project Name','Initiative ID'],
+            fetch: ['ObjectID','FormattedID','Name','Parent','PreliminaryEstimate','Project','State'],
+            fields: ['Feature Object Id','Feature Formatted Id','Feature Name','Initiative Object Id','Preliminary Estimate Object Id','Team Object Id','Team Name','State Object Id'],
             fieldMapping: {
-                "Project ID": function(snapData){
+                "Feature Object Id": function(snapData) {
+                    return snapData.ObjectID;
+                },
+                "Feature Formatted Id": function(snapData) {
+                    return snapData.FormattedID;
+                },
+                "Feature Name": function(snapData) {
+                    return snapData.Name;
+                },
+                "Initiative Object Id": function(snapData) {
+                   return snapData.Parent || "";
+                },
+                "Preliminary Estimate Object Id": function(snapData) {
+                   return snapData.PreliminaryEstimate;
+                },
+                "Team Object Id": function(snapData){
                     return snapData.Project.ObjectID;
                 },
-                "Project Name": function(snapData){
+                "Team Name": function(snapData){
                     return snapData.Project.Name;
                 },
-                "Initiative ID": function(snapData){
-                   return snapData.Parent || "";
-                }
+                "State Object Id": function(snapData){
+                    return snapData.State;
+                },
             },
-            hydrate: ['State','Project']
+            hydrate: ['Project']
         },
-        //Date    Initiative ID    Initiative Name    Team    Team ID    Cap / Exp Field    Investment Category    Initiative Size    State
         "PortfolioItem/Initiative": {
             name: 'PortfolioItem/Initiative',
             displayName: 'Initiative',
-            fetch: ['ObjectID','FormattedID','Name','Project','Investment Category','State','Parent','PreliminaryEstimate'],
-            fields: ['ObjectID','FormattedID','Name','Project ID','Project Name','Investment Category','State','PreliminaryEstimate'],
+            fetch: ['ObjectID','FormattedID','Name','PreliminaryEstimate','Project','InvestmentCategory','State'],
+            fields: ['Initiative Object Id','Initiative Formatted Id','Initiative Name','Preliminary Estimate Object Id','Team Object Id','Team Name','Investment Category','State Object Id'],
             fieldMapping: {
-                "Project ID": function (snapData) {
-                    return snapData.Project.ObjectID;
+                "Initiative Object Id": function (snapData) {
+                    return snapData.ObjectID;
                 },
-                "Project Name": function (snapData) {
-                    return snapData.Project.Name;
+                "Initiative Formatted Id": function (snapData) {
+                    return snapData.FormattedID;
                 },
-                "PreliminaryEstimate": function (snapData) {
+                "Initiative Name": function (snapData) {
+                    return snapData.Name;
+                },
+                "Preliminary Estimate Object Id": function (snapData) {
                     //TODO: populate Preliminary Estimate with Value
                     return snapData.PreliminaryEstimate;
+                },
+                "Team Object Id": function (snapData) {
+                    return snapData.Project.ObjectID;
+                },
+                "Team Name": function (snapData) {
+                    return snapData.Project.Name;
+                },
+                "Investment Category": function (snapData) {
+                    return snapData.InvestmentCategory;
+                },
+                "State Object Id": function (snapData) {
+                    return snapData.State;
                 }
             },
-            hydrate: ['State','Project']
+            hydrate: ['InvestmentCategory','Project']
         }
     },
 
