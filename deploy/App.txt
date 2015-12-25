@@ -3,11 +3,11 @@
 <head>
     <title>Lookback Snapshot Aggregator</title>
     <!--  (c) 2015 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Thu Dec 17 2015 16:00:36 GMT-0600 (CST) -->
+    <!--  Build Date: Fri Dec 25 2015 14:21:05 GMT-0700 (MST) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Thu Dec 17 2015 16:00:36 GMT-0600 (CST)";
-        var CHECKSUM = 42215152181;
+        var APP_BUILD_DATE = "Fri Dec 25 2015 14:21:05 GMT-0700 (MST)";
+        var CHECKSUM = 42334271577;
     </script>
     
     <script type="text/javascript" src="/apps/2.0/sdk.js"></script>
@@ -819,11 +819,11 @@ Ext.define('Rally.technicalservices.FileUtilities', {
             promises = [];
 
         for (var currentPage=1; currentPage <= totalPages; currentPage++){
-            promises.push(this.loadPage(store, currentPage, columns));
+            promises.push(this.loadPage(store, grid, currentPage, columns,mock_meta_data));
         }
         Deft.Promise.all(promises).then({
             success: function(results){
-                console.log('headers',headers,headers.join(','));
+               // console.log('headers',headers,headers.join(','));
                 var csv = [headers.join(',')].concat(_.flatten(results));
                 csv = csv.join('\n');
                 deferred.resolve(csv);
@@ -833,7 +833,7 @@ Ext.define('Rally.technicalservices.FileUtilities', {
         return deferred.promise;
         
     },
-    loadPage: function(store, currentPage,columns){
+    loadPage: function(store, grid, currentPage,columns, mock_meta_data){
         var deferred = Ext.create('Deft.Deferred'),
             csv = [];
 
