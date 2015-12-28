@@ -13,7 +13,6 @@ Ext.define('Rally.technicalservices.SnapshotAggregator',{
         this.configurationMap = config.configurationMap;
 
         this.data = this._aggregate(snapshots, aggregateBy, startDate, endDate);
-        console.log('data',this.data);
     },
     getData: function(){
         return this.data;
@@ -24,8 +23,7 @@ Ext.define('Rally.technicalservices.SnapshotAggregator',{
         return fields;
     },
     _aggregate: function(snapshots, aggregateBy, startDate, endDate){
-        console.log('_aggregate',aggregateBy, startDate, endDate);
-        if (!aggregateBy){
+        if (aggregateBy === 'none'){
             return this._rawData(snapshots);
         }
 
@@ -67,8 +65,6 @@ Ext.define('Rally.technicalservices.SnapshotAggregator',{
             //dateBuckets = this._getDateBuckets(startDate, endDate, 'day'),
             aggregateField = this.aggregateField,
             data = [];
-
-        console.log('dateBuckets',dateBuckets);
 
         _.each(dateBuckets, function(day){
             _.each(snapsByOid, function(snaps){

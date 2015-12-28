@@ -14,7 +14,7 @@ Ext.define('Rally.technicalServices.LookbackSnapshotAggregatorSettings',{
             fieldMapping: {
                 "Feature Object Id": function(snapData){
                     if (snapData.Feature){
-                        return snapData.Feature.ObjectID;
+                        return snapData.Feature;
                     }
                     if (snapData.PortfolioItem){
                         return snapData.PortfolioItem.ObjectID;
