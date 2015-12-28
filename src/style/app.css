@@ -15,3 +15,54 @@
     margin-right: 5px;
     cursor: pointer;
 }
+
+
+.grid-pager {
+    margin: 5px 0 0 0;
+}
+.grid-pager  .nav-links {
+    float: right;
+    font-size: 12px;
+}
+
+.nav-links .rly-first{
+    display: inline-block;
+    vertical-align: middle;
+}
+.nav-links .rly-prev{
+    display: inline-block;
+    vertical-align: middle;
+    border: 0px!important;
+}
+.nav-links .rly-next{
+    display: inline-block;
+    vertical-align: middle;
+    border: 0px!important;
+}
+.nav-links .rly-last{
+    display: inline-block;
+    vertical-align: middle;
+}
+.nav-links .range {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.nav-links .range {
+    margin-right: 10px;
+}
+
+
+.grid-pager .page-size-links {
+
+    float: left;
+}
+.grid-pager .page-size-label {
+    display: inline-block;
+}
+
+.grid-pager .page-size-combobox-container {
+    display: inline-block;
+    margin-left: 10px;
+    vertical-align: middle;
+}
