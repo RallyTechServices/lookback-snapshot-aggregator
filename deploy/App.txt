@@ -3,11 +3,11 @@
 <head>
     <title>Lookback Snapshot Aggregator</title>
     <!--  (c) 2015 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Fri Dec 25 2015 14:21:05 GMT-0700 (MST) -->
+    <!--  Build Date: Mon Dec 28 2015 07:40:52 GMT-0700 (MST) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Fri Dec 25 2015 14:21:05 GMT-0700 (MST)";
-        var CHECKSUM = 42334271577;
+        var APP_BUILD_DATE = "Mon Dec 28 2015 07:40:52 GMT-0700 (MST)";
+        var CHECKSUM = 45865151591;
     </script>
     
     <script type="text/javascript" src="/apps/2.0/sdk.js"></script>
@@ -612,10 +612,10 @@ Ext.define('Rally.technicalServices.LookbackSnapshotAggregatorSettings',{
             fieldMapping: {
                 "Feature Object Id": function(snapData){
                     if (snapData.Feature){
-                        return snapData.Feature;
+                        return snapData.Feature.ObjectID;
                     }
                     if (snapData.PortfolioItem){
-                        return snapData.PortfolioItem;
+                        return snapData.PortfolioItem.ObjectID;
                     }
                     return "";
                 },
@@ -646,7 +646,7 @@ Ext.define('Rally.technicalServices.LookbackSnapshotAggregatorSettings',{
         "PortfolioItem/Feature": {
             name: 'PortfolioItem/Feature',
             displayName: 'Feature',
-            fetch: ['ObjectID','FormattedID','Name','Parent','PreliminaryEstimate','Project','State'],
+             fetch: ['ObjectID','FormattedID','Name','Parent','PreliminaryEstimate','Project','State'],
             fields: ['Feature Object Id','Feature Formatted Id','Feature Name','Initiative Object Id','Preliminary Estimate Object Id','Team Object Id','Team Name','State Object Id'],
             fieldMapping: {
                 "Feature Object Id": function(snapData) {
@@ -708,7 +708,7 @@ Ext.define('Rally.technicalServices.LookbackSnapshotAggregatorSettings',{
                     return snapData.State;
                 }
             },
-            hydrate: ['InvestmentCategory','Project']
+            hydrate: ['Project']
         }
     },
 
@@ -1031,7 +1031,8 @@ Ext.define('Rally.technicalservices.SnapshotAggregator',{
     _aggregateByDay: function(snapshots, startDate, endDate){
         var newDateField = "date_changed",
             snapsByOid = this._aggregateSnapsByOid(snapshots, newDateField),
-            dateBuckets = this._getDateBuckets(startDate, endDate, 'day'),
+            dateBuckets = [endDate];
+            //dateBuckets = this._getDateBuckets(startDate, endDate, 'day'),
             aggregateField = this.aggregateField,
             data = [];
 
@@ -1070,6 +1071,7 @@ Ext.define('Rally.technicalservices.SnapshotAggregator',{
         //Todo: once we start adding more granularity, this will need to be updated to get a different bucket start date
         var bucketStartDate = startDate;
         var bucketEndDate = Rally.util.DateTime.add(endDate, granularity, 1);
+        bucketEndDate = Rally.util.DateTime.add(bucketEndDate, "millisecond",-1);
 
         var date = bucketStartDate;
 
@@ -1140,8 +1142,8 @@ Ext.define("Rally.technicalServices.LookbackSnapshotAggregator", {
         var find = {
             _ProjectHierarchy: {$in: [this.getContext().getProject().ObjectID]},
             _TypeHierarchy: this.getArtifactType(),
-            _ValidFrom: {$lte: Rally.util.DateTime.toIsoString(endDate)},
-            _ValidTo: {$gt: Rally.util.DateTime.toIsoString(startDate)}
+            _ValidFrom: {$lt: Rally.util.DateTime.toIsoString(endDate)},
+            _ValidTo: {$gte: Rally.util.DateTime.toIsoString(startDate)}
         };
         if (this.getConfigurationMap().find){
             Ext.Object.merge(find,this.getConfigurationMap().find);
@@ -1259,8 +1261,8 @@ Ext.define("Rally.technicalServices.LookbackSnapshotAggregator", {
 
         var today = new Date();
 
-        this.getSelectorBox().add(this.getDateSelectorConfig('dt-startDate','Start Date',Rally.util.DateTime.add(today,"day",-this.getDefaultDayRange())));
-        this.getSelectorBox().add(this.getDateSelectorConfig('dt-endDate','End Date',today));
+      //  this.getSelectorBox().add(this.getDateSelectorConfig('gDate','Start Date',Rally.util.DateTime.add(today,"day",-this.getDefaultDayRange())));
+        this.getSelectorBox().add(this.getDateSelectorConfig('dt-endDate','Day',today));
         var btn = this.getSelectorBox().add({
             xtype: 'rallybutton',
             text: 'Update',
@@ -1302,10 +1304,13 @@ Ext.define("Rally.technicalServices.LookbackSnapshotAggregator", {
         return this.down('#selector_box');
     },
     getStartDate: function(){
-        return this.getSelectorBox().down('#dt-startDate').getValue();
+        var day = this.getSelectorBox().down('#dt-endDate').getValue();
+        day.setHours(0,0,0,0);
+        return day; //beginning of day
     },
     getEndDate: function(){
-        return this.getSelectorBox().down('#dt-endDate').getValue();
+        this.logger.log('getEndDate', this.getStartDate());
+        return Rally.util.DateTime.add(this.getStartDate(), "day", 1);
     },
     getSettingsFields: function(){
         return Rally.technicalServices.LookbackSnapshotAggregatorSettings.getFields();

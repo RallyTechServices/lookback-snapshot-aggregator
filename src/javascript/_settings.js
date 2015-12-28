@@ -14,10 +14,10 @@ Ext.define('Rally.technicalServices.LookbackSnapshotAggregatorSettings',{
             fieldMapping: {
                 "Feature Object Id": function(snapData){
                     if (snapData.Feature){
-                        return snapData.Feature;
+                        return snapData.Feature.ObjectID;
                     }
                     if (snapData.PortfolioItem){
-                        return snapData.PortfolioItem;
+                        return snapData.PortfolioItem.ObjectID;
                     }
                     return "";
                 },
@@ -110,7 +110,7 @@ Ext.define('Rally.technicalServices.LookbackSnapshotAggregatorSettings',{
                     return snapData.State;
                 }
             },
-            hydrate: ['InvestmentCategory','Project']
+            hydrate: ['Project']
         }
     },
 

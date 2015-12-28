@@ -54,8 +54,8 @@ Ext.define("Rally.technicalServices.LookbackSnapshotAggregator", {
         var find = {
             _ProjectHierarchy: {$in: [this.getContext().getProject().ObjectID]},
             _TypeHierarchy: this.getArtifactType(),
-            _ValidFrom: {$lte: Rally.util.DateTime.toIsoString(endDate)},
-            _ValidTo: {$gt: Rally.util.DateTime.toIsoString(startDate)}
+            _ValidFrom: {$lt: Rally.util.DateTime.toIsoString(endDate)},
+            _ValidTo: {$gte: Rally.util.DateTime.toIsoString(startDate)}
         };
         if (this.getConfigurationMap().find){
             Ext.Object.merge(find,this.getConfigurationMap().find);
@@ -173,8 +173,8 @@ Ext.define("Rally.technicalServices.LookbackSnapshotAggregator", {
 
         var today = new Date();
 
-        this.getSelectorBox().add(this.getDateSelectorConfig('dt-startDate','Start Date',Rally.util.DateTime.add(today,"day",-this.getDefaultDayRange())));
-        this.getSelectorBox().add(this.getDateSelectorConfig('dt-endDate','End Date',today));
+      //  this.getSelectorBox().add(this.getDateSelectorConfig('gDate','Start Date',Rally.util.DateTime.add(today,"day",-this.getDefaultDayRange())));
+        this.getSelectorBox().add(this.getDateSelectorConfig('dt-endDate','Day',today));
         var btn = this.getSelectorBox().add({
             xtype: 'rallybutton',
             text: 'Update',
@@ -216,10 +216,13 @@ Ext.define("Rally.technicalServices.LookbackSnapshotAggregator", {
         return this.down('#selector_box');
     },
     getStartDate: function(){
-        return this.getSelectorBox().down('#dt-startDate').getValue();
+        var day = this.getSelectorBox().down('#dt-endDate').getValue();
+        day.setHours(0,0,0,0);
+        return day; //beginning of day
     },
     getEndDate: function(){
-        return this.getSelectorBox().down('#dt-endDate').getValue();
+        this.logger.log('getEndDate', this.getStartDate());
+        return Rally.util.DateTime.add(this.getStartDate(), "day", 1);
     },
     getSettingsFields: function(){
         return Rally.technicalServices.LookbackSnapshotAggregatorSettings.getFields();
