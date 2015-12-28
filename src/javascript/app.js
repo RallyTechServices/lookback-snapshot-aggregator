@@ -25,13 +25,20 @@ Ext.define("Rally.technicalServices.LookbackSnapshotAggregator", {
             fetch: true
         }).load({
             callback: function(records){
+                this.logger.log('PreliminaryEstimate Hydration', records);
                 var oidValueHash = {};
                 _.each(records, function(r){
-                    oidValueHash[r.get('ObjectID')] = r.get('Value');
+                    oidValueHash[r.get('ObjectID')] = {};
+                    oidValueHash[r.get('ObjectID')].Value = r.get('Value');
+                    oidValueHash[r.get('ObjectID')].Name = r.get('Name');
                 });
-                Rally.technicalServices.LookbackSnapshotAggregatorSettings.configurationMap["PortfolioItem/Initiative"].fieldMapping.PreliminaryEstimate = function(snapData){
-                    return oidValueHash[snapData.PreliminaryEstimate] || "";
-                };
+                Rally.technicalServices.LookbackSnapshotAggregatorSettings.preliminaryEstimateMap = oidValueHash;
+                //Rally.technicalServices.LookbackSnapshotAggregatorSettings.configurationMap["PortfolioItem/Initiative"].fieldMapping.PreliminaryEstimate = function(snapData){
+                //    return oidValueHash[snapData.PreliminaryEstimate].Name || "";
+                //};
+                //Rally.technicalServices.LookbackSnapshotAggregatorSettings.configurationMap["PortfolioItem/Feature"].fieldMapping.PreliminaryEstimate = function(snapData){
+                //    return oidValueHash[snapData.PreliminaryEstimate].Name || "";
+                //};
                 this._addDateSelectors();
             },
             scope: this
@@ -144,7 +151,6 @@ Ext.define("Rally.technicalServices.LookbackSnapshotAggregator", {
             return col;
         });
     },
-
     getFetchFields: function(){
         this.logger.log('getFetchFields',this.getArtifactType());
         return this.getConfigurationMap().fetch;

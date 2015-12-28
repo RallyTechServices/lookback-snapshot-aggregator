@@ -3,11 +3,11 @@
 <head>
     <title>Lookback Snapshot Aggregator</title>
     <!--  (c) 2015 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Mon Dec 28 2015 07:40:52 GMT-0700 (MST) -->
+    <!--  Build Date: Mon Dec 28 2015 10:55:17 GMT-0700 (MST) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Mon Dec 28 2015 07:40:52 GMT-0700 (MST)";
-        var CHECKSUM = 45865151591;
+        var APP_BUILD_DATE = "Mon Dec 28 2015 10:55:17 GMT-0700 (MST)";
+        var CHECKSUM = 50506662049;
     </script>
     
     <script type="text/javascript" src="/apps/2.0/sdk.js"></script>
@@ -647,7 +647,7 @@ Ext.define('Rally.technicalServices.LookbackSnapshotAggregatorSettings',{
             name: 'PortfolioItem/Feature',
             displayName: 'Feature',
              fetch: ['ObjectID','FormattedID','Name','Parent','PreliminaryEstimate','Project','State'],
-            fields: ['Feature Object Id','Feature Formatted Id','Feature Name','Initiative Object Id','Preliminary Estimate Object Id','Team Object Id','Team Name','State Object Id'],
+            fields: ['Feature Object Id','Feature Formatted Id','Feature Name','Initiative Object Id','Preliminary Estimate Value','Preliminary Estimate Name','Team Object Id','Team Name','State'],
             fieldMapping: {
                 "Feature Object Id": function(snapData) {
                     return snapData.ObjectID;
@@ -661,26 +661,34 @@ Ext.define('Rally.technicalServices.LookbackSnapshotAggregatorSettings',{
                 "Initiative Object Id": function(snapData) {
                    return snapData.Parent || "";
                 },
-                "Preliminary Estimate Object Id": function(snapData) {
-                   return snapData.PreliminaryEstimate;
+                "Preliminary Estimate Value": function(snapData) {
+                     if (snapData.PreliminaryEstimate){
+                        return Rally.technicalServices.LookbackSnapshotAggregatorSettings.preliminaryEstimateMap[snapData.PreliminaryEstimate] &&
+                            Rally.technicalServices.LookbackSnapshotAggregatorSettings.preliminaryEstimateMap[snapData.PreliminaryEstimate].Value || "";
+                    }
+                   return "";
+                },
+                "Preliminary Estimate Name": function(snapData) {
+                     if (snapData.PreliminaryEstimate){
+                        return Rally.technicalServices.LookbackSnapshotAggregatorSettings.preliminaryEstimateMap[snapData.PreliminaryEstimate] &&
+                            Rally.technicalServices.LookbackSnapshotAggregatorSettings.preliminaryEstimateMap[snapData.PreliminaryEstimate].Name || "";
+                    }
+                    return "";
                 },
                 "Team Object Id": function(snapData){
                     return snapData.Project.ObjectID;
                 },
                 "Team Name": function(snapData){
                     return snapData.Project.Name;
-                },
-                "State Object Id": function(snapData){
-                    return snapData.State;
-                },
+                }
             },
-            hydrate: ['Project']
+            hydrate: ['Project','State']
         },
         "PortfolioItem/Initiative": {
             name: 'PortfolioItem/Initiative',
             displayName: 'Initiative',
             fetch: ['ObjectID','FormattedID','Name','PreliminaryEstimate','Project','InvestmentCategory','State'],
-            fields: ['Initiative Object Id','Initiative Formatted Id','Initiative Name','Preliminary Estimate Object Id','Team Object Id','Team Name','Investment Category','State Object Id'],
+            fields: ['Initiative Object Id','Initiative Formatted Id','Initiative Name','Preliminary Estimate Value','Preliminary Estimate Name','Team Object Id','Team Name','Investment Category','State'],
             fieldMapping: {
                 "Initiative Object Id": function (snapData) {
                     return snapData.ObjectID;
@@ -691,9 +699,19 @@ Ext.define('Rally.technicalServices.LookbackSnapshotAggregatorSettings',{
                 "Initiative Name": function (snapData) {
                     return snapData.Name;
                 },
-                "Preliminary Estimate Object Id": function (snapData) {
-                    //TODO: populate Preliminary Estimate with Value
-                    return snapData.PreliminaryEstimate;
+                "Preliminary Estimate Value": function(snapData) {
+                    if (snapData.PreliminaryEstimate){
+                        return Rally.technicalServices.LookbackSnapshotAggregatorSettings.preliminaryEstimateMap[snapData.PreliminaryEstimate] &&
+                            Rally.technicalServices.LookbackSnapshotAggregatorSettings.preliminaryEstimateMap[snapData.PreliminaryEstimate].Value || "";
+                    }
+                    return "";
+                },
+                "Preliminary Estimate Name": function(snapData) {
+                    if (snapData.PreliminaryEstimate){
+                        return Rally.technicalServices.LookbackSnapshotAggregatorSettings.preliminaryEstimateMap[snapData.PreliminaryEstimate] &&
+                            Rally.technicalServices.LookbackSnapshotAggregatorSettings.preliminaryEstimateMap[snapData.PreliminaryEstimate].Name || "";
+                    }
+                    return "";
                 },
                 "Team Object Id": function (snapData) {
                     return snapData.Project.ObjectID;
@@ -703,12 +721,9 @@ Ext.define('Rally.technicalServices.LookbackSnapshotAggregatorSettings',{
                 },
                 "Investment Category": function (snapData) {
                     return snapData.InvestmentCategory;
-                },
-                "State Object Id": function (snapData) {
-                    return snapData.State;
                 }
             },
-            hydrate: ['Project']
+            hydrate: ['Project','State']
         }
     },
 
@@ -1113,13 +1128,20 @@ Ext.define("Rally.technicalServices.LookbackSnapshotAggregator", {
             fetch: true
         }).load({
             callback: function(records){
+                this.logger.log('PreliminaryEstimate Hydration', records);
                 var oidValueHash = {};
                 _.each(records, function(r){
-                    oidValueHash[r.get('ObjectID')] = r.get('Value');
+                    oidValueHash[r.get('ObjectID')] = {};
+                    oidValueHash[r.get('ObjectID')].Value = r.get('Value');
+                    oidValueHash[r.get('ObjectID')].Name = r.get('Name');
                 });
-                Rally.technicalServices.LookbackSnapshotAggregatorSettings.configurationMap["PortfolioItem/Initiative"].fieldMapping.PreliminaryEstimate = function(snapData){
-                    return oidValueHash[snapData.PreliminaryEstimate] || "";
-                };
+                Rally.technicalServices.LookbackSnapshotAggregatorSettings.preliminaryEstimateMap = oidValueHash;
+                //Rally.technicalServices.LookbackSnapshotAggregatorSettings.configurationMap["PortfolioItem/Initiative"].fieldMapping.PreliminaryEstimate = function(snapData){
+                //    return oidValueHash[snapData.PreliminaryEstimate].Name || "";
+                //};
+                //Rally.technicalServices.LookbackSnapshotAggregatorSettings.configurationMap["PortfolioItem/Feature"].fieldMapping.PreliminaryEstimate = function(snapData){
+                //    return oidValueHash[snapData.PreliminaryEstimate].Name || "";
+                //};
                 this._addDateSelectors();
             },
             scope: this
@@ -1232,7 +1254,6 @@ Ext.define("Rally.technicalServices.LookbackSnapshotAggregator", {
             return col;
         });
     },
-
     getFetchFields: function(){
         this.logger.log('getFetchFields',this.getArtifactType());
         return this.getConfigurationMap().fetch;
