@@ -115,11 +115,11 @@ Ext.define('Rally.technicalservices.FileUtilities', {
             promises = [];
 
         for (var currentPage=1; currentPage <= totalPages; currentPage++){
-            promises.push(this.loadPage(store, currentPage, columns));
+            promises.push(this.loadPage(store, grid, currentPage, columns,mock_meta_data));
         }
         Deft.Promise.all(promises).then({
             success: function(results){
-                console.log('headers',headers,headers.join(','));
+               // console.log('headers',headers,headers.join(','));
                 var csv = [headers.join(',')].concat(_.flatten(results));
                 csv = csv.join('\n');
                 deferred.resolve(csv);
@@ -129,7 +129,7 @@ Ext.define('Rally.technicalservices.FileUtilities', {
         return deferred.promise;
         
     },
-    loadPage: function(store, currentPage,columns){
+    loadPage: function(store, grid, currentPage,columns, mock_meta_data){
         var deferred = Ext.create('Deft.Deferred'),
             csv = [];
 

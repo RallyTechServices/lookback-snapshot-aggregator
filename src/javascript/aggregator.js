@@ -63,7 +63,8 @@ Ext.define('Rally.technicalservices.SnapshotAggregator',{
     _aggregateByDay: function(snapshots, startDate, endDate){
         var newDateField = "date_changed",
             snapsByOid = this._aggregateSnapsByOid(snapshots, newDateField),
-            dateBuckets = this._getDateBuckets(startDate, endDate, 'day'),
+            dateBuckets = [endDate];
+            //dateBuckets = this._getDateBuckets(startDate, endDate, 'day'),
             aggregateField = this.aggregateField,
             data = [];
 
@@ -102,6 +103,7 @@ Ext.define('Rally.technicalservices.SnapshotAggregator',{
         //Todo: once we start adding more granularity, this will need to be updated to get a different bucket start date
         var bucketStartDate = startDate;
         var bucketEndDate = Rally.util.DateTime.add(endDate, granularity, 1);
+        bucketEndDate = Rally.util.DateTime.add(bucketEndDate, "millisecond",-1);
 
         var date = bucketStartDate;
 
