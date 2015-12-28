@@ -162,10 +162,12 @@ Ext.define("Rally.technicalServices.LookbackSnapshotAggregator", {
         return this.getConfigurationMap().hydrate;
     },
     getArtifactType: function(){
-        return this.getSetting('artifactType');
+        return this.down('#artifactType').getValue();
+        //return this.getSetting('artifactType');
     },
     getAggregateBy: function(){
-        return this.getSetting('aggregateBy');
+        return this.down('#aggregateBy').getValue();
+        //return this.getSetting('aggregateBy');
     },
     getMaxDayRange: function(){
         return this.getSetting('maxDayRange');
@@ -176,6 +178,32 @@ Ext.define("Rally.technicalServices.LookbackSnapshotAggregator", {
     _addDateSelectors: function(){
         this.down('#selector_box').removeAll();
         this.down('#display_box').removeAll();
+
+        var configurationData = _.values(Rally.technicalServices.LookbackSnapshotAggregatorSettings.configurationMap),
+            width = 100;
+
+        this.getSelectorBox().add({
+            xtype: 'rallycombobox',
+            itemId: 'artifactType',
+            store: Ext.create('Ext.data.Store', {data: configurationData, fields: ['name','displayName']}),
+            fieldLabel: "Artifact Type",
+            labelAlign: 'right',
+            labelWidth: width,
+            displayField: 'displayName',
+            valueField: 'name'
+        });
+
+        this.getSelectorBox().add({
+            xtype: 'rallycombobox',
+            itemId: 'aggregateBy',
+            store: Ext.create('Ext.data.Store',{data: Rally.technicalServices.LookbackSnapshotAggregatorSettings.aggregateByOptions, fields: ['name','value']}),
+            displayField: 'name',
+            valueField: 'value',
+            labelAlign: 'right',
+            labelWidth: width,
+            fieldLabel: "Aggregate By"
+        });
+
 
         var today = new Date();
 
@@ -231,7 +259,7 @@ Ext.define("Rally.technicalServices.LookbackSnapshotAggregator", {
         return Rally.util.DateTime.add(this.getStartDate(), "day", 1);
     },
     getSettingsFields: function(){
-        return Rally.technicalServices.LookbackSnapshotAggregatorSettings.getFields();
+        return [];  //Rally.technicalServices.LookbackSnapshotAggregatorSettings.getFields();
     },
     getOptions: function() {
         return [
