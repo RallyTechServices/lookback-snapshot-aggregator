@@ -13,11 +13,12 @@ Ext.define('Rally.technicalServices.LookbackSnapshotAggregatorSettings',{
             hydrate: ['ScheduleState','Project'],
             fieldMapping: {
                 "Feature Object Id": function(snapData){
+                    console.log('feature', snapData);
                     if (snapData.Feature){
                         return snapData.Feature;
                     }
                     if (snapData.PortfolioItem){
-                        return snapData.PortfolioItem.ObjectID;
+                        return snapData.PortfolioItem;
                     }
                     return "";
                 },
