@@ -3,11 +3,11 @@
 <head>
     <title>Lookback Snapshot Aggregator</title>
     <!--  (c) 2015 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Tue Dec 29 2015 10:58:44 GMT-0700 (MST) -->
+    <!--  Build Date: Sun Feb 21 2016 12:18:12 GMT-0700 (MST) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Tue Dec 29 2015 10:58:44 GMT-0700 (MST)";
-        var CHECKSUM = 82427506244;
+        var APP_BUILD_DATE = "Sun Feb 21 2016 12:18:12 GMT-0700 (MST)";
+        var CHECKSUM = 82737120978;
     </script>
     
     <script type="text/javascript" src="/apps/2.0/sdk.js"></script>
@@ -611,7 +611,6 @@ Ext.define('Rally.technicalServices.LookbackSnapshotAggregatorSettings',{
             hydrate: ['ScheduleState','Project'],
             fieldMapping: {
                 "Feature Object Id": function(snapData){
-                    console.log('feature', snapData);
                     if (snapData.Feature){
                         return snapData.Feature;
                     }
@@ -930,7 +929,9 @@ Ext.define('Rally.technicalservices.FileUtilities', {
                             }
                         }
                     },this);
-                    csv.push('"' + node_values.join('","') + '"');
+
+                    node_values = _.map(node_values, function(v){ return Ext.String.format("\"{0}\"", v.toString().replace("\"","\"\""));});
+                    csv.push(node_values.join(','));
                 }
                 deferred.resolve(csv);
             }
@@ -1045,7 +1046,7 @@ Ext.define('Rally.technicalservices.SnapshotAggregator',{
     _aggregateByDay: function(snapshots, startDate, endDate){
         var newDateField = "date_changed",
             snapsByOid = this._aggregateSnapsByOid(snapshots, newDateField),
-            dateBuckets = [endDate];
+            dateBuckets = [endDate],
             //dateBuckets = this._getDateBuckets(startDate, endDate, 'day'),
             aggregateField = this.aggregateField,
             data = [];
@@ -1182,7 +1183,8 @@ Ext.define("Rally.technicalServices.LookbackSnapshotAggregator", {
             aggregateBy: this.getAggregateBy(),
             sort: {
                 _ValidFrom: 1
-            }
+            },
+            removeUnauthorizedSnapshots: true
         });
 
         asf.load();
@@ -1377,8 +1379,6 @@ Ext.define("Rally.technicalServices.LookbackSnapshotAggregator", {
     isExternal: function(){
         return typeof(this.getAppId()) == 'undefined';
     },
-    
-    //onSettingsUpdate:  Override
     onSettingsUpdate: function (settings){
         this.logger.log('onSettingsUpdate',settings);
         Ext.apply(this, settings);

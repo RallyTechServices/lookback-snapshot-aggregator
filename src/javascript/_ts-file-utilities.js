@@ -166,7 +166,9 @@ Ext.define('Rally.technicalservices.FileUtilities', {
                             }
                         }
                     },this);
-                    csv.push('"' + node_values.join('","') + '"');
+
+                    node_values = _.map(node_values, function(v){ return Ext.String.format("\"{0}\"", v.toString().replace("\"","\"\""));});
+                    csv.push(node_values.join(','));
                 }
                 deferred.resolve(csv);
             }
