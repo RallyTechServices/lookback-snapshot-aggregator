@@ -82,7 +82,8 @@ Ext.define("Rally.technicalServices.LookbackSnapshotAggregator", {
             aggregateBy: this.getAggregateBy(),
             sort: {
                 _ValidFrom: 1
-            }
+            },
+            removeUnauthorizedSnapshots: true
         });
 
         asf.load();
@@ -277,8 +278,6 @@ Ext.define("Rally.technicalServices.LookbackSnapshotAggregator", {
     isExternal: function(){
         return typeof(this.getAppId()) == 'undefined';
     },
-    
-    //onSettingsUpdate:  Override
     onSettingsUpdate: function (settings){
         this.logger.log('onSettingsUpdate',settings);
         Ext.apply(this, settings);
