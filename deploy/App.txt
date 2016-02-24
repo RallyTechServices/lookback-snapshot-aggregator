@@ -3,11 +3,11 @@
 <head>
     <title>Lookback Snapshot Aggregator</title>
     <!--  (c) 2015 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Sun Feb 21 2016 12:18:12 GMT-0700 (MST) -->
+    <!--  Build Date: Wed Feb 24 2016 11:52:38 GMT-0700 (MST) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Sun Feb 21 2016 12:18:12 GMT-0700 (MST)";
-        var CHECKSUM = 82737120978;
+        var APP_BUILD_DATE = "Wed Feb 24 2016 11:52:38 GMT-0700 (MST)";
+        var CHECKSUM = 82737920169;
     </script>
     
     <script type="text/javascript" src="/apps/2.0/sdk.js"></script>
@@ -930,7 +930,7 @@ Ext.define('Rally.technicalservices.FileUtilities', {
                         }
                     },this);
 
-                    node_values = _.map(node_values, function(v){ return Ext.String.format("\"{0}\"", v.toString().replace("\"","\"\""));});
+                    node_values = _.map(node_values, function(v){ return Ext.String.format("\"{0}\"", v.toString().replace(/"/g, "\"\""));});
                     csv.push(node_values.join(','));
                 }
                 deferred.resolve(csv);
